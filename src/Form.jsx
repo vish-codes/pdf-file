@@ -41,6 +41,8 @@ const Form = () => {
     doc.addImage(`./images/panorama-new.png`, 'PNG', 10, 10, 50, 20);
 
     doc.setFontSize(20);
+    doc.line(20, 20, 60, 20);
+
     doc.text('Invoice', 90, 20);
 
     doc.setFontSize(14);
@@ -48,12 +50,31 @@ const Form = () => {
 
     doc.text(`GST Number: ${gstNumber}`, 25, 70);
 
-    doc.text(`Username: ${username}`, 25, 90);
-    doc.text(`Pay Per Day: ${payPerDay} (in rupees)`, 25, 100);
-    // doc.text(`Salary: ${payPerDay}`, 25, 70);
-    doc.text(`Days in current month: ${salary} (in rupees)`, 25, 110);
+    // Define the text and its position
+    const text = 'Hello, World!';
+    const x = 10;
+    const y = 20;
+    const textWidth = doc.getTextWidth(text);
+    const textHeight = 10; // Approximate height of the text
 
-    doc.text(`Total: ~${result}`, 25, 130);
+    // Draw the text
+    doc.text(text, x, y);
+
+    // Draw a border around the text
+    const borderMargin = 2; // Margin between the text and the border
+    doc.rect(
+      x - borderMargin,
+      y - textHeight - borderMargin,
+      textWidth + 2 * borderMargin,
+      textHeight + 2 * borderMargin
+    );
+
+    // doc.text(`Username: ${username}`, 25, 90);
+    // doc.text(`Pay Per Day: ${payPerDay} (in rupees)`, 25, 100);
+    // // doc.text(`Salary: ${payPerDay}`, 25, 70);
+    // doc.text(`Days in current month: ${salary} (in rupees)`, 25, 110);
+
+    // doc.text(`Total: ~${result}`, 25, 130);
 
     doc.save('Invoice.pdf');
   };
@@ -95,12 +116,10 @@ const Form = () => {
         <AddResources getresourcesData={getresourcesData} />
       ) : null}
 
-      {result !== null && (
-        <>
-          <h2>Result: ₹{result}</h2>
-          <button onClick={handleDownloadPDF}>Download PDF</button>
-        </>
-      )}
+      <>
+        <h2>Result: ₹{result}</h2>
+        <button onClick={handleDownloadPDF}>Download PDF</button>
+      </>
     </div>
   );
 };

@@ -1,19 +1,17 @@
-import { useState } from 'react';
+import React from 'react';
+import PdfGenerator from './PdfGenerator';
 import './App.css';
-import Form from './Form';
-import ReactPDF from '@react-pdf/renderer';
-import NewForm from './NewForm';
-import DownloadButton from './DownloadButton';
-// import ReactPDF from "@react-pdf/react-pdf";
+import DescTable from './DescTable';
+import JsPdfGenerator from './JsPdfGenerator';
+import Test1 from './components/Test1';
 
-function App() {
-  const [count, setCount] = useState(0);
-
+export default function App() {
   return (
     <div>
-      <Form />
+      {/* <PdfGenerator /> */}
+      {/* <JsPdfGenerator /> */}
+      <Test1 />
+      {/* <DescTable /> */}
     </div>
   );
 }
-
-export default App;

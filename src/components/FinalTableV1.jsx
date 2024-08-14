@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
+import Papa from 'papaparse';
+// import file from './file';
 
 const FinalTableV1 = () => {
   const [inputText, setInputText] = useState('');
   const [pdfUrl, setPdfUrl] = useState('');
+  const [currentlySelectedFile, setCurrentlySelectedFile] = useState();
+  console.log(currentlySelectedFile);
+
+  function handleParse() {
+    Papa.parse(currentlySelectedFile, file);
+  }
+
   const [resourcesArr, setresourcesArr] = useState([
     {
       userId: '123',
@@ -34,6 +43,7 @@ const FinalTableV1 = () => {
       sacCode: '2329',
       fromDate: '1st July',
       toDate: '30th July 2024',
+
       days: 21,
       hours: 8,
       payPerDay: 100,
@@ -141,21 +151,36 @@ const FinalTableV1 = () => {
 
   return (
     <div>
-      <label>Invoice no.</label>
-      <input
+      {/* <label>Invoice no.</label> */}
+      {/* <input
         type="text"
         value={inputText}
         onChange={(e) => setInputText(e.target.value)}
         placeholder="Type something to update PDF"
-      />
-      {pdfUrl && (
-        <iframe
-          src={pdfUrl}
-          style={{ width: '100%', height: '800px' }}
-          frameBorder="0"
-          title="PDF Preview"
-        ></iframe>
-      )}
+      /> */}
+      <form className="border border-blue-400 m-3 p-2 rounded-lg w-1/2">
+        <input
+          type="file"
+          onChange={(e) => setCurrentlySelectedFile(e.target.files[0])}
+        />
+        <button
+          onClick={handleParse}
+          type="submit"
+          className="bg-blue-200 border-2 border-blue-400 rounded-md px-3"
+        >
+          Parse
+        </button>
+      </form>
+      {/* {pdfUrl && (
+        <>
+          
+          {/* <iframe
+            src={pdfUrl}
+            style={{ width: '100%', height: '800px' }}
+            frameBorder="0"
+            title="PDF Preview"
+          ></iframe> 
+        </>*/}
     </div>
   );
 };

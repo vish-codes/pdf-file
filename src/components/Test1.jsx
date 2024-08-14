@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
+import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 
 const Test1 = () => {
   const [inputText, setInputText] = useState('');
@@ -7,7 +9,7 @@ const Test1 = () => {
 
   // Values variables START -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   const [dateOfInvoices, setDateOfInvoices] = useState(new Date());
-
+  const [commonDataForPdf, setCommonDataForPdf] = useState([]);
   const [BilliedCompanyDetails, setBilliedCompanyDetails] = useState({
     companyName: 'StatusNeo Technology Consulting Pvt Ltd',
     addressLine1: 'E-2324, Palam Vihar',
@@ -16,6 +18,70 @@ const Test1 = () => {
     zipCode: '122017',
     gstIn: '06ABDCS4762Q1ZP',
   });
+
+  const [data, setData] = useState([]);
+  function generatePDFmain() {
+    setCommonDataForPdf(data[0]);
+    data.map((val, i) =>
+      setBilliedCompanyDetails((bill) => ({
+        ...bill,
+        companyName: val['Resource 1'],
+      }))
+    );
+  }
+  console.log(commonDataForPdf);
+
+  // BIG SpliT START ---------------------------------- //
+  console.log(data);
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    // console.log(file);
+    if (file) {
+      const fileExtension = file.name.split('.').pop();
+
+      if (fileExtension === 'csv') {
+        // Parse CSV file
+        Papa.parse(file, {
+          header: true,
+          complete: (results) => {
+            setData(results.data);
+            // console.log(results.data);
+          },
+          error: (error) => {
+            console.error('Error parsing CSV:', error);
+          },
+        });
+      } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+        // Parse Excel file
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const binaryString = e.target.result;
+          const workbook = XLSX.read(binaryString, { type: 'binary' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const csvData = XLSX.utils.sheet_to_csv(worksheet);
+          Papa.parse(csvData, {
+            header: true,
+            complete: (results) => {
+              setData(results.data);
+              // console.log(results.data);
+            },
+            error: (error) => {
+              console.error('Error parsing Excel:', error);
+            },
+          });
+        };
+        reader.readAsBinaryString(file);
+      } else {
+        alert('Unsupported file format. Please upload a CSV or Excel file.');
+      }
+    }
+  };
+
+  // BIS SPLIT END ------------------------------------------- //
+
+  // invoive number heading variable
+  const [invoiceNo, setInvoiceNo] = useState(null);
 
   const [resourcesArr, setresourcesArr] = useState([
     {
@@ -42,19 +108,7 @@ const Test1 = () => {
     },
   ]);
 
-  // const [amount, setAmount] = useState([]);
-
-  // getting total amount calculation from resourcesArr
-
-  // useEffect(() => {
-  //   const calculatedAmounts = resourcesArr.map(
-  //     (resource) => resource.days * resource.payPerDay
-  //   );
-
-  //   setAmount(calculatedAmounts);
-  // }, [resourcesArr]);
-
-  // console.log(amount);
+  // invoice date variables
   const day = dateOfInvoices.getDate();
   const month = dateOfInvoices.getMonth() + 1;
   const year = dateOfInvoices.getFullYear();
@@ -76,7 +130,7 @@ const Test1 = () => {
 
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(61, 121, 216);
-    doc.text(`INVOICE NO: GST/24-25/0000`, 112, 32);
+    doc.text(`INVOICE NO: ${invoiceNo ? invoiceNo : 0}`, 112, 32);
     doc.setTextColor(0, 0, 0);
     doc.setFont('helvetica', 'normal');
 
@@ -155,92 +209,7 @@ const Test1 = () => {
     // doc.line(30, 137, 195, 137);
     //       xst.yst.xend.yend.
 
-    // -----------verticle dividers ---------------------- //
-    // doc.line(130, 130, 130, 172);
-    // doc.line(160, 130, 160, 172);
-
     doc.setFont('helvetica', 'bold');
-
-    //------------------ Actual heading (no-dividers) ---------//
-
-    // doc.text('DESCRIPTION', 70, 134.5);
-    // doc.text('SAC CODE', 137, 134.5);
-    // doc.text('AMOUNT', 170, 134.5);
-    /*
-    // -----------------------Resources data with amounts ---------------------//
-    doc.setFontSize(7.5);
-    doc.setFont('helvetica', 'normal');
-
-    resourcesArr.map((res) => {
-      doc.text(
-        `Consultancy charges ${res.username} on ${res.workingOn} (${res.userId})`,
-        31.5,
-        141.5
-      );
-      doc.text(`(${res.fromDate} - ${res.toDate})`, 31.5, 144.8);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`${res.days} Days * ${res.hours} Hours * INR`, 31.5, 148.2);
-
-      doc.setFont('helvetica', 'normal');
-      doc.text('INR', 185, 145);
-
-      // ------- SAP CODE ----------------//
-      doc.text(`${res.sacCode}`, 141, 144.8);
-    });
-    /*
-    doc.text(
-      'Consultancy charges Ankur Chaudhary on Maf Carrefour (C087)',
-      31.5,
-      141.5
-    );
-    doc.text('(1st December - 31st December 2024)', 31.5, 144.8);
-    doc.setFont('helvetica', 'bold');
-    doc.text('21 Days * 8 Hours * INR', 31.5, 148.2);
-
-    doc.setFont('helvetica', 'normal');
-    doc.text('INR', 185, 145);
-
-    // ------- SAP CODE ----------------//
-    doc.text('9983', 141, 144.8); 
-
-    // divider for resources horizontal //
-    doc.line(30, 151, 195, 151);
-
-    // divider for subtotal horizontal //
-
-    doc.line(30, 158, 195, 158);
-
-    // -----------------------Subtotal row ---------------------//
-    doc.setFont('helvetica', 'bold');
-    doc.text('SUBTOTAL', 31.5, 155);
-    doc.setFont('helvetica', 'normal');
-
-    doc.text('INR', 185, 155);
-
-    // divider for IGST % horizontal //
-
-    doc.line(30, 165, 195, 165);
-
-    // -----------------------Subtotal row ---------------------//
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('IGST 18%', 31.5, 162);
-    doc.setFont('helvetica', 'normal');
-
-    doc.text('INR', 185, 162);
-
-    // -----------------------TOTAL row ---------------------//
-
-    doc.setFont('helvetica', 'bold');
-    doc.text('TOTAL', 31.5, 169);
-
-    doc.text('INR', 185, 169);
-    doc.setFont('helvetica', 'normal');
-
-    // -----------------------Thanks row ---------------------//
-    doc.setFontSize(9);
-    doc.text('Thanks for your business.', 28, 183);
-*/
 
     // MAIN TABLE HERE...***...***...***...***...***...***
 
@@ -346,12 +315,12 @@ const Test1 = () => {
 
   return (
     <div>
-      <label>Invoice no.</label>
+      <button onClick={generatePDFmain}>Gen PDF</button>
+      <label>Select file : </label>
       <input
-        type="text"
-        value={inputText}
-        onChange={(e) => setInputText(e.target.value)}
-        placeholder="Type something to update PDF"
+        type="file"
+        onChange={handleFileUpload}
+        accept=".csv, .xlsx, .xls"
       />
       {pdfUrl && (
         <iframe

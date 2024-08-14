@@ -1,0 +1,8 @@
+1). is this pdf correct? [yes , no, go back]
+
+2). different type of currencies (INR,EUR, USD)
+
+3). built execl data import option and set it in pdf 
+
+4). Built it for on resource first then for multiple(tricky)
+

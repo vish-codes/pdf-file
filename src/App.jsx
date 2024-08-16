@@ -16,7 +16,7 @@ export default function App() {
       <Test1 />
       {/* <TestitingCompV3 /> */}
       {/* <FinalTableV1 />/ */}
-      <FileUploader />
+      {/* <FileUploader /> */}
       {/* <DescTable /> */}
     </div>
   );

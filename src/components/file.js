@@ -26,3 +26,36 @@
 //   delimitersToGuess: [',', '\t', '|', ';', Papa.RECORD_SEP, Papa.UNIT_SEP],
 //   skipFirstNLines: 0,
 // };
+
+let obj = [
+  {
+    name: 'anand',
+    class: '12',
+    occupation: 'student',
+    grade: 'math = 59',
+  },
+  {
+    name: '',
+    class: '',
+    occupation: '',
+    grade: 'math = 59',
+  },
+  {
+    name: '',
+    class: '',
+    occupation: '',
+    grade: 'science = 59',
+  },
+  {
+    name: '',
+    class: '',
+    occupation: '',
+    grade: 'english = 59',
+  },
+  {
+    name: '',
+    class: '',
+    occupation: '',
+    grade: 'Social Science = 59',
+  },
+];

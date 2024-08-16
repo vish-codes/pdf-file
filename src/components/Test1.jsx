@@ -8,51 +8,79 @@ const Test1 = () => {
   const [pdfUrl, setPdfUrl] = useState('');
 
   // Values variables START -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-  const [dateOfInvoices, setDateOfInvoices] = useState(new Date());
-  const [commonDataForPdf, setCommonDataForPdf] = useState([]);
-  const [BilliedCompanyDetails, setBilliedCompanyDetails] = useState({
-    companyName: 'StatusNeo Technology Consulting Pvt Ltd',
-    addressLine1: 'E-2324, Palam Vihar',
-    addressLine2: 'Gurugram, Gurgaon',
-    stateName: 'Haryana',
-    zipCode: '122017',
-    gstIn: '06ABDCS4762Q1ZP',
-  });
+  // const [dateOfInvoices, setDateOfInvoices] = useState(new Date());
 
+  const [resource, setResource] = useState({});
+  const [commonDataForPdf, setCommonDataForPdf] = useState({});
   const [data, setData] = useState([]);
+
   function generatePDFmain() {
-    setCommonDataForPdf(data[0]);
-    data.map((val, i) =>
-      setBilliedCompanyDetails((bill) => ({
-        ...bill,
-        companyName: val['Resource 1'],
-      }))
-    );
+    const {
+      ['Invoice no.']: invoiceNo,
+      ['Date of Invoice']: dateOfInvoice,
+      ['Comapny Name']: companyName,
+      ['Address line 1']: add1,
+      ['Address line 2']: add2,
+      ['State/Code']: state,
+      ['Gst In']: gstIn,
+      ['Resource 1']: resource,
+    } = data[0];
+    setCommonDataForPdf(() => ({
+      invoiceNo,
+      dateOfInvoice,
+      companyName,
+      add1,
+      add2,
+      state,
+      gstIn,
+      resource,
+    }));
+
+    // data.map((val, i) =>
+    //   setResource((bill) => ({
+    //     ...bill,
+    //     [`value${i}`]: val['Resource 1'],
+    //   }))
+    // );
+
+    generatePDF();
   }
-  console.log(commonDataForPdf);
+
+  useEffect(() => {
+    generatePDF();
+    return () => URL.revokeObjectURL(pdfUrl);
+  }, [data, commonDataForPdf]);
+
+  useEffect(() => {
+    if (data.length > 0) {
+      data.map((val, i) =>
+        setResource((bill) => ({
+          ...bill,
+          [`value${i}`]: val['Resource 1'],
+        }))
+      );
+    }
+  }, [data]);
 
   // BIG SpliT START ---------------------------------- //
-  console.log(data);
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
-    // console.log(file);
     if (file) {
       const fileExtension = file.name.split('.').pop();
 
+      // CSV file
       if (fileExtension === 'csv') {
-        // Parse CSV file
         Papa.parse(file, {
           header: true,
           complete: (results) => {
-            setData(results.data);
-            // console.log(results.data);
+            setData(() => results.data);
           },
           error: (error) => {
             console.error('Error parsing CSV:', error);
           },
         });
+        // Excel file
       } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
-        // Parse Excel file
         const reader = new FileReader();
         reader.onload = (e) => {
           const binaryString = e.target.result;
@@ -63,8 +91,7 @@ const Test1 = () => {
           Papa.parse(csvData, {
             header: true,
             complete: (results) => {
-              setData(results.data);
-              // console.log(results.data);
+              setData(() => results.data);
             },
             error: (error) => {
               console.error('Error parsing Excel:', error);
@@ -78,12 +105,36 @@ const Test1 = () => {
     }
   };
 
-  // BIS SPLIT END ------------------------------------------- //
+  function prepareData() {
+    if (!resource) return;
+    console.log('divider ------------------------');
+    let resourceTemp = resource;
 
-  // invoive number heading variable
-  const [invoiceNo, setInvoiceNo] = useState(null);
+    let customObject = {
+      username: resourceTemp.value0.split('=')[1].trim(),
+      workingOn: resourceTemp.value1.split('=')[1].trim(),
+      userId: resourceTemp.value2.split('=')[1].trim(),
+      sacCode: resourceTemp.value3.split('=')[1].trim(),
+      days: parseInt(resourceTemp.value4.split('=')[1].trim(), 10),
+      hours: parseInt(resourceTemp.value5.split('=')[1].trim(), 10),
+      payPerDay: parseFloat(resourceTemp.value6.split('=')[1].trim()),
+      fromDate: resourceTemp.value7.split('=')[1].trim(),
+      toDate: resourceTemp.value8.split('=')[1].trim(),
+    };
 
-  const [resourcesArr, setresourcesArr] = useState([
+    setResourcesArr((data) => [...data, customObject]);
+    console.log(customObject);
+  }
+
+  useEffect(() => {
+    if (resource && Object.keys(resource).length > 0) {
+      prepareData();
+    }
+  }, [resource]);
+
+  // BIG SPLIT END ------------------------------------------- //
+
+  const [resourcesArr, setResourcesArr] = useState([
     {
       userId: '123',
       username: 'John Doe',
@@ -95,23 +146,14 @@ const Test1 = () => {
       hours: 8,
       payPerDay: 3000,
     },
-    {
-      userId: '321',
-      username: 'Bill Gates',
-      workingOn: 'Maf Carrefour',
-      sacCode: '2332',
-      fromDate: '1st July',
-      toDate: '30th July 2024',
-      days: 21,
-      hours: 9,
-      payPerDay: 1200,
-    },
   ]);
 
+  /*
   // invoice date variables
   const day = dateOfInvoices.getDate();
   const month = dateOfInvoices.getMonth() + 1;
   const year = dateOfInvoices.getFullYear();
+*/
 
   // Values variables END-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   const generatePDF = () => {
@@ -130,7 +172,13 @@ const Test1 = () => {
 
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(61, 121, 216);
-    doc.text(`INVOICE NO: ${invoiceNo ? invoiceNo : 0}`, 112, 32);
+    doc.text(
+      `INVOICE NO: ${
+        commonDataForPdf.invoiceNo ? commonDataForPdf.invoiceNo : ''
+      }`,
+      112,
+      32
+    );
     doc.setTextColor(0, 0, 0);
     doc.setFont('helvetica', 'normal');
 
@@ -160,7 +208,12 @@ const Test1 = () => {
     doc.setFontSize(8.8);
     doc.text(`Date of Invoice: `, 130, 60.5);
     doc.setFont('helvetica', 'normal');
-    doc.text(`${day}/${month > 9 ? month : `0${month}`}/${year}`, 154.6, 60.5);
+    doc.text(
+      `${commonDataForPdf.dateOfInvoice ? commonDataForPdf.dateOfInvoice : ''}`,
+      154.6,
+      60.5
+    );
+    // ${day}/${month > 9 ? month : `0${month}`}/${year}
     doc.setFont('helvetica', 'bold');
     doc.text('GSTIN: ', 130, 67);
     doc.setFont('helvetica', 'normal');
@@ -181,14 +234,18 @@ const Test1 = () => {
     // To-Adress ----------------------------
     doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
-    doc.text(BilliedCompanyDetails.companyName, 30, 98);
+    doc.text(
+      `${commonDataForPdf.companyName ? commonDataForPdf.companyName : ''}`,
+      30,
+      98
+    );
 
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text(BilliedCompanyDetails.addressLine1, 30, 106);
-    doc.text(BilliedCompanyDetails.addressLine2, 30, 110);
+    doc.text(`${commonDataForPdf.add1 ? commonDataForPdf.add1 : ''}`, 30, 106);
+    doc.text(`${commonDataForPdf.add2 ? commonDataForPdf.add2 : ''}`, 30, 110);
     doc.text(
-      `${BilliedCompanyDetails.stateName} - ${BilliedCompanyDetails.zipCode}`,
+      `${commonDataForPdf.state ? commonDataForPdf.state : ''}`,
       30,
       114
     );
@@ -197,7 +254,11 @@ const Test1 = () => {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
     doc.text('GSTIN: ', 30, 122);
-    doc.text(BilliedCompanyDetails.gstIn, 43, 122);
+    doc.text(
+      `${commonDataForPdf.gstIn ? commonDataForPdf.gstIn : ''}`,
+      43,
+      122
+    );
 
     doc.setFontSize(9);
     // main table ---------------------------- // START // ------------------------------------- //
@@ -315,13 +376,20 @@ const Test1 = () => {
 
   return (
     <div>
-      <button onClick={generatePDFmain}>Gen PDF</button>
-      <label>Select file : </label>
-      <input
-        type="file"
-        onChange={handleFileUpload}
-        accept=".csv, .xlsx, .xls"
-      />
+      <button
+        onClick={generatePDFmain}
+        className="border border-black m-2 px-2 rounded-sm"
+      >
+        Gen PDF
+      </button>
+      <div className="border border-black w-1/2 p-1 m-2">
+        <label>Select file : </label>
+        <input
+          type="file"
+          onChange={handleFileUpload}
+          accept=".csv, .xlsx, .xls"
+        />
+      </div>
       {pdfUrl && (
         <iframe
           src={pdfUrl}

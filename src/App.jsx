@@ -13,8 +13,8 @@ export default function App() {
     <div>
       {/* <PdfGenerator /> */}
       {/* <JsPdfGenerator /> */}
-      <Test1 />
-      {/* <TestitingCompV3 /> */}
+      {/* <Test1 /> */}
+      <TestitingCompV3 />
       {/* <FinalTableV1 />/ */}
       {/* <FileUploader /> */}
       {/* <DescTable /> */}

@@ -13,6 +13,7 @@ const Test1 = () => {
   const [resource, setResource] = useState({});
   const [commonDataForPdf, setCommonDataForPdf] = useState({});
   const [data, setData] = useState([]);
+  const [totals, setTotals] = useState({ subTotal: '', total: '', igst: '' });
 
   function generatePDFmain() {
     const {
@@ -35,23 +36,45 @@ const Test1 = () => {
       gstIn,
       resource,
     }));
-
-    // data.map((val, i) =>
-    //   setResource((bill) => ({
-    //     ...bill,
-    //     [`value${i}`]: val['Resource 1'],
-    //   }))
-    // );
-
+    calculateTotals();
     generatePDF();
   }
+
+  // calculate how subtotal, and total
+
+  const calculateTotals = () => {
+    console.log('first');
+
+    // Calculate subtotal
+    const subTotal = resourcesArr.reduce(
+      (acc, val) => acc + parseFloat(val.payPerDay * val.days),
+      0
+    );
+
+    console.log('sec');
+
+    // Calculate IGST and total
+    const igst = subTotal * 0.18;
+    const total = subTotal + igst;
+
+    // Set the state with an object containing the totals
+    setTotals({ subTotal, igst, total });
+
+    console.log('third');
+
+    // Return the totals
+    return { subTotal, igst, total };
+  };
+
+  console.log(totals);
 
   useEffect(() => {
     generatePDF();
     return () => URL.revokeObjectURL(pdfUrl);
   }, [data, commonDataForPdf]);
 
-  useEffect(() => {
+  // function that sets data for resources just after file upload
+  /*  useEffect(() => {
     if (data.length > 0) {
       data.map((val, i) =>
         setResource((bill) => ({
@@ -59,6 +82,38 @@ const Test1 = () => {
           [`value${i}`]: val['Resource 1'],
         }))
       );
+    }
+  }, [data]); */
+
+  useEffect(() => {
+    if (data.length > 0) {
+      const resources = data.reduce((acc, val, i) => {
+        // Iterate over the existing resource keys
+        for (let j = 1; j <= 10; j++) {
+          const resourceKey = `Resource ${j}`;
+
+          // Initialize the resource object once for each
+          if (!acc[`resource${j}`]) acc[`resource${j}`] = {};
+
+          // Add resource object data ----------
+          if (val[resourceKey]) {
+            acc[`resource${j}`][`value${i}`] = val[resourceKey];
+          }
+        }
+        return acc;
+      }, {});
+
+      // setting accumulated resource objects into an array
+      const resourceArray = [];
+      for (let j = 1; j <= 10; j++) {
+        if (
+          resources[`resource${j}`] &&
+          Object.keys(resources[`resource${j}`]).length > 0
+        ) {
+          resourceArray.push(resources[`resource${j}`]);
+        }
+      }
+      setResource(resourceArray);
     }
   }, [data]);
 
@@ -105,25 +160,51 @@ const Test1 = () => {
     }
   };
 
+  /*
+  const users = payload.map((item) => {
+    const address = [];
+
+    // Check and add address1 if valid
+    if (item.address1 !== "" && item.address1) {
+        address.push({ address: item.address1 });
+    }
+
+    // Check and add address2 if valid
+    if (item.address2 !== "" && item.address2) {
+        address.push({ address: item.address2 });
+    }
+
+    // Return the transformed object
+    return {
+        name: item.name,
+        age: item.age,
+        address: address.length > 0 ? address : undefined,
+    };
+});
+*/
+
   function prepareData() {
     if (!resource) return;
     console.log('divider ------------------------');
     let resourceTemp = resource;
+    let tempArr = [];
 
-    let customObject = {
-      username: resourceTemp.value0.split('=')[1].trim(),
-      workingOn: resourceTemp.value1.split('=')[1].trim(),
-      userId: resourceTemp.value2.split('=')[1].trim(),
-      sacCode: resourceTemp.value3.split('=')[1].trim(),
-      days: parseInt(resourceTemp.value4.split('=')[1].trim(), 10),
-      hours: parseInt(resourceTemp.value5.split('=')[1].trim(), 10),
-      payPerDay: parseFloat(resourceTemp.value6.split('=')[1].trim()),
-      fromDate: resourceTemp.value7.split('=')[1].trim(),
-      toDate: resourceTemp.value8.split('=')[1].trim(),
-    };
+    const hello = resource.map((val, i) => {
+      let customObject = {
+        username: val.value0.split('=')[1].trim(),
+        workingOn: val.value1.split('=')[1].trim(),
+        userId: val.value2.split('=')[1].trim(),
+        sacCode: val.value3.split('=')[1].trim(),
+        days: parseInt(val.value4.split('=')[1].trim(), 10),
+        hours: parseInt(val.value5.split('=')[1].trim(), 10),
+        payPerDay: parseFloat(val.value6.split('=')[1].trim()),
+        fromDate: val.value7.split('=')[1].trim(),
+        toDate: val.value8.split('=')[1].trim(),
+      };
+      tempArr.push(customObject);
+    });
 
-    setResourcesArr((data) => [...data, customObject]);
-    console.log(customObject);
+    setResourcesArr(tempArr);
   }
 
   useEffect(() => {
@@ -341,15 +422,18 @@ const Test1 = () => {
     doc.line(30, subtotalY - 9, 195, subtotalY - 9); // Divider for subtotal -------------------
 
     doc.text('SUBTOTAL', 31.5, subtotalY - 5);
-    doc.text('INR', 185, subtotalY - 5);
+    doc.text(totals.subTotal.toString(), 173, subtotalY - 5);
+    doc.text('INR', 185,  subtotalY - 5);
 
     doc.line(30, igstY - 10, 195, igstY - 10); // Divider for IGSTb ------------------
     doc.text('IGST 18%', 31.5, igstY - 6);
+    doc.text(totals.igst.toString(), 173, igstY - 6);
     doc.text('INR', 185, igstY - 6);
 
     doc.line(30, totalY - 10.5, 195, totalY - 10.5); // Divider for TOTAL ------------------
     doc.setFont('helvetica', 'bold');
     doc.text('TOTAL', 31.5, totalY - 6.5);
+    doc.text(totals.total.toString(), 173, totalY - 6.5);
     doc.text('INR', 185, totalY - 6.5);
 
     // Thank You Message Position --------------------

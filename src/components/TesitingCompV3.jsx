@@ -155,11 +155,36 @@ const TestitingCompV3 = () => {
                 }
               />
             </div>
+
             {/* {errors.invoiceNumber && (
               <p id="invoiceNumber-error" className="mt-1 text-sm text-red-600">
                 {errors.invoiceNumber}
               </p>
             )} */}
+
+            <label
+              htmlFor="invoiceNumber"
+              className="block text-lg font-medium text-gray-700 mb-1"
+            >
+              Company Name :
+            </label>
+            <div className="relative">
+              <FaFileInvoice className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                id="invoiceNumber"
+                value={invoiceNumber}
+                onChange={(e) => setInvoiceNumber(e.target.value)}
+                className={`pl-10 w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  errors.invoiceNumber ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="Enter invoice number"
+                aria-invalid={errors.invoiceNumber ? 'true' : 'false'}
+                aria-describedby={
+                  errors.invoiceNumber ? 'invoiceNumber-error' : undefined
+                }
+              />
+            </div>
           </div>
           {/* Address fields ------------------------------------- */}
           <div>
